@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WeatherWave Dashboard</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><radialGradient id='sg' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='%23ffe066'/><stop offset='100%' stop-color='%23f97316'/></radialGradient></defs><circle cx='50' cy='50' r='38' fill='url(%23sg)'/><circle cx='50' cy='50' r='38' fill='none' stroke='%23ffb300' stroke-width='2'/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -258,7 +257,7 @@
   .ws-v { font-family: 'JetBrains Mono', monospace; font-size: 0.94rem; font-weight: 500; }
 
   /* mini cards */
-  .mini-icon { font-size: 1.9rem; margin-bottom: 0.75rem; }
+  .mini-icon { font-size: 1.9rem; margin-bottom: 0.75rem; min-height: 52px; display:flex; align-items:center; }
   .mini-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.11em; color: var(--muted); margin-bottom: 0.3rem; font-weight: 600; }
   .mini-val { font-family: 'Space Grotesk', sans-serif; font-size: 2.1rem; font-weight: 700; }
   .mini-sub { font-size: 0.76rem; color: var(--muted); margin-top: 0.1rem; }
@@ -477,7 +476,7 @@
 
 <script>
 const WEATHER_KEY = "1bddbacc0b6d9d87caf5815b58746b09";
-const NEWS_KEY    = "47f83a371c5d6ec94a6d2cfb057082fa";
+const NEWS_KEY    = "pub_2e90182dcf5f4252b218565b9391ae92";
 const IS_DEMO     = WEATHER_KEY === "YOUR_OPENWEATHERMAP_API_KEY" || WEATHER_KEY.length < 10;
 
 const DAYS   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -550,7 +549,7 @@ const MOCK_NEWS = {
 };
 
 var currentWeather = null, currentForecast = null, currentNews = null;
-var activeTab = "general";
+var activeTab = "top";
 var tempChartObj = null, windChartObj = null;
 
 async function fetchAll(city) {
@@ -559,9 +558,9 @@ async function fetchAll(city) {
   document.getElementById("errBanner").style.display   = "none";
   // News hamesha real fetch karo
   try {
-    var nR = await fetch("https://gnews.io/api/v4/top-headlines?category=" + activeTab + "&lang=en&max=5&apikey=" + NEWS_KEY);
+    var nR = await fetch("https://newsdata.io/api/1/news?apikey=" + NEWS_KEY + "&language=en&category=" + activeTab);
     var nData = await nR.json();
-    currentNews = { articles: (nData.articles || []).map(function(a) { return { source: { name: a.source.name }, title: a.title, publishedAt: a.publishedAt, url: a.url }; }) };
+    currentNews = { articles: (nData.results || []).map(function(a) { return { source: { name: a.source_id || "News" }, title: a.title, publishedAt: a.pubDate, url: a.link }; }) };
   } catch(e) { currentNews = MOCK_NEWS; }
 
   // Weather alag try-catch mein
@@ -613,8 +612,9 @@ function renderAll() {
     '</div>';
   }).join("");
 
-  var tabsHTML = ["general","technology","science","health"].map(function(t) {
-    return '<button class="tab' + (activeTab===t?' active':'') + '" onclick="switchTab(\'' + t + '\')">' + t.charAt(0).toUpperCase() + t.slice(1) + '</button>';
+  var tabsHTML = ["top","technology","science","health"].map(function(t) {
+    var label = t==="top"?"General":t.charAt(0).toUpperCase()+t.slice(1);
+    return '<button class="tab' + (activeTab===t?' active':'') + '" onclick="switchTab(\'' + t + '\')">' + label + '</button>';
   }).join("");
 
   var articlesHTML = (n.articles || []).slice(0, 5).map(function(a) {
@@ -642,14 +642,14 @@ function renderAll() {
         '</div>' +
       '</div>' +
       '<div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">' +
-        '<div><div class="mini-icon">🌀</div><div class="mini-label">Pressure</div>' +
+        '<div><div class="mini-icon" style="font-size:0">' + cssIcon("mist") + '</div><div class="mini-label" style="margin-top:0.5rem">Pressure</div>' +
         '<div class="mini-val" style="color:#f9a8d4">' + w.main.pressure + '</div>' +
         '<div class="mini-sub">hPa — ' + (w.main.pressure > 1013 ? "High" : "Low") + ' pressure</div></div>' +
         '<div style="margin-top:1.5rem;"><div class="mini-label" style="margin-bottom:.5rem;">Wind direction</div>' +
         '<div style="height:62px;"><canvas id="windChart"></canvas></div></div>' +
       '</div>' +
       '<div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">' +
-        '<div><div class="mini-icon">🌤️</div><div class="mini-label">Condition</div>' +
+        '<div><div class="mini-icon" style="font-size:0">' + cssIcon("partly") + '</div><div class="mini-label" style="margin-top:0.5rem">Condition</div>' +
         '<div style="font-family:\'Space Grotesk\',sans-serif;font-size:1.2rem;font-weight:600;margin:.2rem 0;text-transform:capitalize;">' + w.weather[0].description + '</div></div>' +
         '<div><div class="mini-label" style="margin-bottom:.5rem;">Humidity level</div>' +
         '<div style="background:rgba(255,255,255,.08);border-radius:50px;height:6px;overflow:hidden;">' +
