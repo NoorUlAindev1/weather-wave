@@ -571,7 +571,7 @@ async function fetchAll(city) {
     } else {
       var wR = await fetch("https://api.openweathermap.org/data/2.5/weather?q=" + encodeURIComponent(city) + "&appid=" + WEATHER_KEY + "&units=metric");
       var fR = await fetch("https://api.openweathermap.org/data/2.5/forecast?q=" + encodeURIComponent(city) + "&appid=" + WEATHER_KEY + "&units=metric");
-      if (!wR.ok) throw new Error("Weather key activate nahi hui abhi — thoda wait karo.");
+      if (!wR.ok) throw new Error("kindly Please Wait.");
       currentWeather = await wR.json(); currentForecast = await fR.json();
     }
   } catch(e) {
